@@ -1,0 +1,30 @@
+/*
+
+This is a demo to showcase how delta tables can be retrieved and synced into 
+snowflake aotumatically with minimun resource near real time
+
+*/
+
+----- CDC pipeline starts here -----------
+
+-- check source
+select * from iot_device_delta limit 10;
+
+-- truncate target
+truncate table raw_iot_dbx_to_snf;
+
+-- keep the sync running
+alter task refresh_iot_table resume;
+alter task load_iot_snf resume;
+
+select count(*) from raw_iot_dbx_to_snf;
+
+-- Verify
+select sum(iotdata:id) sum_id from raw_iot_dbx_to_snf ;
+select iotdata:id, iotdata:miles_walked from raw_iot_dbx_to_snf where iotdata:id::integer = 150001;
+-- Stop the task
+alter task refresh_iot_table suspend;
+alter task load_iot_snf suspend;
+
+
+
